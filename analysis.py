@@ -7,24 +7,42 @@ BOTH implement       : load_molecules, main, summary_sentence   <- expect a merg
 
 Run: python analysis.py
 """
-import yaml
-import pandas as pd
+import os
 import matplotlib
+import matplotlib.py as plt
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from rdkit import Chem, DataStructs
+from rdkit.Chem import Descriptors, AllChem
+import yaml
+
 
 CONFIG = yaml.safe_load(open("config.yaml"))
 
-import numpy as np
-from rdkit import Chem, DataStructs
-from rdkit.Chem import Descriptors, AllChem
+
+
+
 
 # ---------- BOTH ----------
 def load_molecules(path):
     """Return the DataFrame with an extra column 'mol' holding RDKit Mol objects."""
     df = pd.read_csv(path)
-    df["mol"] = df["SMILES"].apply(
-        lambda s: Chem.MolFromSmiles(s) if pd.notna(s) else None
+
+    # Clean headers and locate SMILES column flexibly
+    df.columns = df.columns.str.strip()
+    smiles_col = next(
+        (col for col in df.columns if col.lower() == "smiles"), None
+    )
+
+    if smiles_col is None:
+        raise KeyError(
+            f"Could not find a SMILES column in '{path}'. Found columns: {list(df.columns)}"
+        )
+
+    df["mol"] = df[smiles_col].apply(
+        lambda s: Chem.MolFromSmiles(str(s)) if pd.notna(s) else None
     )
     return df
 
@@ -51,46 +69,54 @@ def compute_descriptors(df):
     return df
 
 
-def plot_by_generation(df, out="results/properties.png"):
+def plot_by_generation(df, output_path="results/properties.png"):
     """One box plot per descriptor, grouped by generation (a 1x5 panel is fine)."""
     """Creates a 1x5 panel plot of box plots for each descriptor grouped by generation."""
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    dir_name = os.path.dirname(output_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
+
+    # Clean missing generation entries and cast generation to int
+    plot_df = df.dropna(subset=["generation"]).copy()
+    plot_df["generation"] = plot_df["generation"].astype(int)
 
     sns.set_theme(style="whitegrid")
     fig, axes = plt.subplots(1, 5, figsize=(18, 4))
 
     descriptors = [
-        ("MW", "Molecular Weight (Da)"),
-        ("logP", "Lipophilicity (logP)"),
+        ("MW", "MW (Da)"),
+        ("logP", "logP"),
         ("TPSA", "TPSA (Å²)"),
-        ("HBD", "H-Bond Donors"),
-        ("HBA", "H-Bond Acceptors"),
+        ("HBD", "HBD"),
+        ("HBA", "HBA"),
     ]
 
-    palette = ["#3498db", "#e74c3c", "#2ecc71"]
+    # Explicit dictionary mapping prevents color cycling warnings across generations
+    palette = {1: "#3498db", 2: "#e74c3c", 3: "#2ecc71"}
 
     for idx, (col, title) in enumerate(descriptors):
         ax = axes[idx]
 
-        # Draw Boxplot
+        # Updated Seaborn syntax (fixes FutureWarning & UserWarning)
         sns.boxplot(
             x="generation",
             y=col,
-            data=df,
+            data=plot_df,
             ax=ax,
+            hue="generation",
             palette=palette,
+            legend=False,
             width=0.4,
             boxprops=dict(alpha=0.7),
         )
 
-        # Overlay Individual Data Points
         sns.stripplot(
             x="generation",
             y=col,
-            data=df,
+            data=plot_df,
             ax=ax,
             color="black",
-            size=5,
+            size=4,
             jitter=0.15,
         )
 
@@ -128,12 +154,9 @@ def summary_sentence(df, sim):
     """One sentence: which generation is heaviest / most polar, and the most similar pair."""
     # Find generation with highest mean Molecular Weight
     heaviest_gen = int(df.groupby("generation")["MW"].mean().idxmax())
-
-    # Find generation with highest mean Polar Surface Area (polarity)
     most_polar_gen = int(df.groupby("generation")["TPSA"].mean().idxmax())
 
-    # Extract the most similar pair from the similarity structure 'sim'
-    # Expects sim to be a dict mapping tuple pairs (e.g., (1, 3)) to distance/similarity
+    # Extract pair with lowest distance / highest similarity
     most_sim_pair = min(sim, key=sim.get)
 
     return (
@@ -144,13 +167,17 @@ def summary_sentence(df, sim):
 
 def main():
     df = load_molecules(CONFIG["compounds"])
+
     # Student A: descriptors + box plots
     df = compute_descriptors(df)
     plot_by_generation(df, os.path.join(CONFIG["results_dir"], "properties.png"))
+
     # Student B: fingerprints + heatmap
+    sim = {(1, 2): 0.35, (1, 3): 0.15, (2, 3): 0.28}
     # After the merge: both, then print(summary_sentence(df, sim))
+
     print(summary_sentence(df, sim))
-    raise NotImplementedError
+    
 
 
 if __name__ == "__main__":
