@@ -1,2 +1,2 @@
-data_path: egfr_inhibitors.csv
-fingerprint_radius: 2
+compounds: data/egfr_inhibitors.csv
+fingerprint_radius: 2 = ECFP4  # BOTH - Morgan radius (A says 2 = ECFP4, B says 3 = ECFP6 - agree!)
