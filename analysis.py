@@ -9,7 +9,7 @@ Run: python analysis.py
 """
 import os
 import matplotlib
-import matplotlib.py as plt
+import matplotlib.pyplot as plt
 matplotlib.use("Agg")
 import numpy as np
 import pandas as pd
@@ -78,7 +78,9 @@ def plot_by_generation(df, output_path="results/properties.png"):
 
     # Clean missing generation entries and cast generation to int
     plot_df = df.dropna(subset=["generation"]).copy()
-    plot_df["generation"] = plot_df["generation"].astype(int)
+    plot_df["generation"] = pd.to_numeric(plot_df["generation"], errors='coerce')
+    plot_df["generation"] = plot_df["generation"].fillna(0).astype(int)
+
 
     sns.set_theme(style="whitegrid")
     fig, axes = plt.subplots(1, 5, figsize=(18, 4))
@@ -132,7 +134,7 @@ def plot_by_generation(df, output_path="results/properties.png"):
 
 if __name__ == "__main__":
     # Execution workflow
-    df = load_molecules("egfr_inhibitors.csv")
+    df = load_molecules("data/egfr_inhibitors.csv")
     df = compute_descriptors(df)
     plot_by_generation(df)
 
@@ -153,7 +155,8 @@ def similarity_heatmap(fps, names, out="results/similarity.png"):
 def summary_sentence(df, sim):
     """One sentence: which generation is heaviest / most polar, and the most similar pair."""
     # Find generation with highest mean Molecular Weight
-    heaviest_gen = int(df.groupby("generation")["MW"].mean().idxmax())
+    heaviest_gen = df.groupby("generation")["MW"].mean().idxmax()
+
     most_polar_gen = int(df.groupby("generation")["TPSA"].mean().idxmax())
 
     # Extract pair with lowest distance / highest similarity
@@ -170,7 +173,8 @@ def main():
 
     # Student A: descriptors + box plots
     df = compute_descriptors(df)
-    plot_by_generation(df, os.path.join(CONFIG["results_dir"], "properties.png"))
+    plot_by_generation(df, os.path.join(CONFIG.get("results_dir", "results"), "properties.png"))
+
 
     # Student B: fingerprints + heatmap
     sim = {(1, 2): 0.35, (1, 3): 0.15, (2, 3): 0.28}
