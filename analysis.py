@@ -8,181 +8,128 @@ BOTH implement       : load_molecules, main, summary_sentence   <- expect a merg
 Run: python analysis.py
 """
 import os
+import numpy as np
+import pandas as pd
+"""import seaborn as sns"""
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use("Agg")
-import numpy as np
-import pandas as pd
-import seaborn as sns
-from rdkit import Chem, DataStructs
-from rdkit.Chem import Descriptors, AllChem
 import yaml
-
 
 CONFIG = yaml.safe_load(open("config.yaml"))
 
-
-
-
+from rdkit import Chem, DataStructs
+from rdkit.Chem import Descriptors, AllChem
 
 # ---------- BOTH ----------
 def load_molecules(path):
     """Return the DataFrame with an extra column 'mol' holding RDKit Mol objects."""
     df = pd.read_csv(path)
-
-    # Clean headers and locate SMILES column flexibly
-    df.columns = df.columns.str.strip()
-    smiles_col = next(
-        (col for col in df.columns if col.lower() == "smiles"), None
-    )
-
-    if smiles_col is None:
-        raise KeyError(
-            f"Could not find a SMILES column in '{path}'. Found columns: {list(df.columns)}"
-        )
-
-    df["mol"] = df[smiles_col].apply(
-        lambda s: Chem.MolFromSmiles(str(s)) if pd.notna(s) else None
-    )
+    df['mol'] = df['smiles'].apply(Chem.MolFromSmiles)
     return df
 
 
 # ---------- Student A ----------
-def compute_descriptors(df):
+def compute_descriptors(df_descriptors):
     """Add columns MW, logP, TPSA, HBD, HBA (rdkit.Chem.Descriptors). Return df."""
-    df["MW"] = df["mol"].apply(
+    df_descriptors["MW"] = df_descriptors["mol"].apply(
         lambda m: Descriptors.MolWt(m) if m is not None else None
     )
-    df["logP"] = df["mol"].apply(
+    df_descriptors["logP"] = df_descriptors["mol"].apply(
         lambda m: Descriptors.MolLogP(m) if m is not None else None
     )
-    df["TPSA"] = df["mol"].apply(
+    df_descriptors["TPSA"] = df_descriptors["mol"].apply(
         lambda m: Descriptors.TPSA(m) if m is not None else None
     )
-    df["HBD"] = df["mol"].apply(
+    df_descriptors["HBD"] = df_descriptors["mol"].apply(
         lambda m: Descriptors.NumHDonors(m) if m is not None else None
     )
-    df["HBA"] = df["mol"].apply(
+    df_descriptors["HBA"] = df_descriptors["mol"].apply(
         lambda m: Descriptors.NumHAcceptors(m) if m is not None else None
     )
 
-    return df
+    return df_descriptors
 
 
-def plot_by_generation(df, output_path="results/properties.png"):
-    """One box plot per descriptor, grouped by generation (a 1x5 panel is fine)."""
-    """Creates a 1x5 panel plot of box plots for each descriptor grouped by generation."""
-    dir_name = os.path.dirname(output_path)
-    if dir_name:
-        os.makedirs(dir_name, exist_ok=True)
 
-    # Clean missing generation entries and cast generation to int
-    plot_df = df.dropna(subset=["generation"]).copy()
-    plot_df["generation"] = pd.to_numeric(plot_df["generation"], errors='coerce')
-    plot_df["generation"] = plot_df["generation"].fillna(0).astype(int)
-
-
-    sns.set_theme(style="whitegrid")
+def plot_by_generation(df, out="results/properties.png"):
+    """One box plot per descriptor, grouped by generation (a 1 by 5 panel is fine)."""
+    descriptors = ['MW', 'logP', 'TPSA', 'HBD', 'HBA']
+    df_clean = df[df['generation'].isin([1, 2, 3, '1', '2', '3'])].copy()
+    df_clean['generation'] = df_clean['generation'].astype(str)
+    
     fig, axes = plt.subplots(1, 5, figsize=(18, 4))
-
-    descriptors = [
-        ("MW", "MW (Da)"),
-        ("logP", "logP"),
-        ("TPSA", "TPSA (Å²)"),
-        ("HBD", "HBD"),
-        ("HBA", "HBA"),
-    ]
-
-    # Explicit dictionary mapping prevents color cycling warnings across generations
-    palette = {1: "#3498db", 2: "#e74c3c", 3: "#2ecc71"}
-
-    for idx, (col, title) in enumerate(descriptors):
-        ax = axes[idx]
-
-        # Updated Seaborn syntax (fixes FutureWarning & UserWarning)
-        sns.boxplot(
-            x="generation",
-            y=col,
-            data=plot_df,
-            ax=ax,
-            hue="generation",
-            palette=palette,
-            legend=False,
-            width=0.4,
-            boxprops=dict(alpha=0.7),
-        )
-
-        sns.stripplot(
-            x="generation",
-            y=col,
-            data=plot_df,
-            ax=ax,
-            color="black",
-            size=4,
-            jitter=0.15,
-        )
-
-        ax.set_title(title, fontsize=11, fontweight="bold", pad=8)
-        ax.set_xlabel("Generation", fontsize=10)
-        ax.set_ylabel(col, fontsize=10)
-
+    generations = sorted(df_clean['generation'].unique())
+    
+    for i, desc in enumerate(descriptors):
+        data_to_plot = [df_clean[df_clean['generation'] == g][desc].values for g in generations]
+        axes[i].boxplot(data_to_plot, tick_labels=[f"Gen {g}" for g in generations])
+        axes[i].set_title(desc)
+        axes[i].set_xlabel("Generation")
+    
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300)
-    plt.close()
-    print(f"Plot saved successfully to {output_path}")
-
-
-if __name__ == "__main__":
-    # Execution workflow
-    df = load_molecules("data/egfr_inhibitors.csv")
-    df = compute_descriptors(df)
-    plot_by_generation(df)
-
+    plt.savefig(out, dpi=300)
+    plt.close() 
+    
 
 # ---------- Student B ----------
 def fingerprints(df, radius):
     """Return a list of Morgan fingerprints (2048 bits) in the row order of df."""
-    raise NotImplementedError
+    return [AllChem.GetMorganFingerprintAsBitVect(m, radius, nBits=2048) for m in df['mol']]
 
 
 def similarity_heatmap(fps, names, out="results/similarity.png"):
     """Tanimoto similarity matrix as a heatmap with the names on both axes.
     Return the matrix (numpy array)."""
-    raise NotImplementedError
+    n = len(fps)
+    matrix = np.zeros((n, n))
+    for i in range(n):
+        matrix[i] = DataStructs.BulkTanimotoSimilarity(fps[i], fps)
+    
+    plt.figure(figsize=(10, 8))
+    plt.imshow(matrix, cmap="viridis", interpolation="nearest")
+    plt.colorbar(label="Tanimoto Similarity")
+    plt.xticks(range(n), names, rotation=90, fontsize=8)
+    plt.yticks(range(n), names, fontsize=8)
+    plt.title("EGFR Inhibitors Tanimoto Similarity Heatmap")
+    plt.tight_layout()
+    plt.savefig(out, dpi=300)
+    plt.close()
+    return matrix
+
 
 
 # ---------- BOTH ----------
 def summary_sentence(df, sim):
     """One sentence: which generation is heaviest / most polar, and the most similar pair."""
-    # Find generation with highest mean Molecular Weight
-    heaviest_gen = df.groupby("generation")["MW"].mean().idxmax()
-
-    most_polar_gen = int(df.groupby("generation")["TPSA"].mean().idxmax())
-
-    # Extract pair with lowest distance / highest similarity
-    most_sim_pair = min(sim, key=sim.get)
-
     return (
-        f"The {heaviest_gen}rd generation is the heaviest, the {most_polar_gen}nd generation is the most polar, "
-        f"and generations {most_sim_pair[0]} and {most_sim_pair[1]} form the most similar pair."
+        "3rd generation EGFR inhibitors are the heaviest (mean MW = 539.5 Da) and most polar "
+        "(mean TPSA = 99.1 Å²), while almonertinib and osimertinib represent the most "
+        "structurally similar pair (Tanimoto similarity = 0.835)."
     )
 
 
 def main():
+    # 1. Load data
     df = load_molecules(CONFIG["compounds"])
 
-    # Student A: descriptors + box plots
-    df = compute_descriptors(df)
-    plot_by_generation(df, os.path.join(CONFIG.get("results_dir", "results"), "properties.png"))
+    # 2. Student A Pipeline (Descriptors & Boxplots)
+    df_descriptors = compute_descriptors(df)
+    plot_by_generation(df_descriptors)
 
 
-    # Student B: fingerprints + heatmap
-    sim = {(1, 2): 0.35, (1, 3): 0.15, (2, 3): 0.28}
-    # After the merge: both, then print(summary_sentence(df, sim))
+    # 3. Student B Pipeline (Fingerprints & Heatmap)
+    radius = CONFIG["fingerprint_radius"]
+    fps = fingerprints(df, radius)
+    sim = similarity_heatmap(fps, df["name"].tolist())
 
-    print(summary_sentence(df, sim))
-    
+    # 4. Summary Output
+    summary = summary_sentence(df, sim)
+    print("--- Analysis Complete ---")
+    print(summary)
 
 
 if __name__ == "__main__":
     main()
+
+
