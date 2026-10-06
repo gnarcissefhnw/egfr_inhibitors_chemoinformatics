@@ -1,2 +1,2 @@
-compounds: egfr_inhibitors.csv
+compounds: data/egfr_inhibitors.csv
 fingerprint_radius: 2
