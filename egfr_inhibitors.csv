@@ -1,0 +1,22 @@
+name,generation,status,smiles,formula,mol_weight
+erlotinib,1,approved (any jurisdiction),C#Cc1cccc(Nc2ncnc3cc(OCCOC)c(OCCOC)cc23)c1,C22H23N3O4,393.4
+gefitinib,1,approved (any jurisdiction),COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OCCCN1CCOCC1,C22H24ClFN4O3,446.9
+icotinib,1,approved (any jurisdiction),C#Cc1cccc(Nc2ncnc3cc4c(cc23)OCCOCCOCCO4)c1,C22H21N3O4,391.4
+lapatinib,1,approved (any jurisdiction),CS(=O)(=O)CCNCc1ccc(-c2ccc3ncnc(Nc4ccc(OCc5cccc(F)c5)c(Cl)c4)c3c2)o1,C29H26ClFN4O4S,581.1
+sapitinib,1,clinical/investigational,CNC(=O)CN1CCC(Oc2cc3c(Nc4cccc(Cl)c4F)ncnc3cc2OC)CC1,C23H25ClFN5O3,473.9
+vandetanib,1,approved (any jurisdiction),COc1cc2c(Nc3ccc(Br)cc3F)ncnc2cc1OCC1CCN(C)CC1,C22H24BrFN4O2,475.4
+afatinib,2,approved (any jurisdiction),CN(C)C/C=C/C(=O)Nc1cc2c(Nc3ccc(F)c(Cl)c3)ncnc2cc1O[C@H]1CCOC1,C24H25ClFN5O3,485.9
+canertinib,2,clinical/investigational,C=CC(=O)Nc1cc2c(Nc3ccc(F)c(Cl)c3)ncnc2cc1OCCCN1CCOCC1,C24H25ClFN5O3,485.9
+dacomitinib,2,approved (any jurisdiction),COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1NC(=O)/C=C/CN1CCCCC1,C24H25ClFN5O2,469.9
+neratinib,2,approved (any jurisdiction),CCOc1cc2ncc(C#N)c(Nc3ccc(OCc4ccccn4)c(Cl)c3)c2cc1NC(=O)/C=C/CN(C)C,C30H29ClN6O3,557.1
+pelitinib,2,clinical/investigational,CCOc1cc2ncc(C#N)c(Nc3ccc(F)c(Cl)c3)c2cc1NC(=O)/C=C/CN(C)C,C24H23ClFN5O2,467.9
+poziotinib,2,approved (any jurisdiction),C=CC(=O)N1CCC(Oc2cc3c(Nc4ccc(Cl)c(Cl)c4F)ncnc3cc2OC)CC1,C23H21Cl2FN4O3,491.4
+pyrotinib,2,approved (any jurisdiction),CCOc1cc2ncc(C#N)c(Nc3ccc(OCc4ccccn4)c(Cl)c3)c2cc1NC(=O)/C=C/[C@H]1CCCN1C,C32H31ClN6O3,583.1
+almonertinib,3,approved (any jurisdiction),C=CC(=O)Nc1cc(Nc2nccc(-c3cn(C)c4ccccc34)n2)c(OC)cc1N(C)CCN1CCCC1,C30H35N7O2,525.7
+furmonertinib,3,approved (any jurisdiction),C=CC(=O)Nc1cnc(OCC(F)(F)F)c(Nc2nccc(-c3cn(C)c4ccccc34)n2)c1N(C)CCN(C)C,C28H31F3N8O2,568.6
+lazertinib,3,approved (any jurisdiction),C=CC(=O)Nc1cc(Nc2nccc(-n3cc(CN(C)C)c(-c4ccccc4)n3)n2)c(OC)cc1N1CCOCC1,C30H34N8O3,554.7
+mobocertinib,3,approved (any jurisdiction),C=CC(=O)Nc1cc(Nc2ncc(C(=O)OC(C)C)c(-c3cn(C)c4ccccc34)n2)c(OC)cc1N(C)CCN(C)C,C32H39N7O4,585.7
+olmutinib,3,approved (any jurisdiction),C=CC(=O)Nc1cccc(Oc2nc(Nc3ccc(N4CCN(C)CC4)cc3)nc3ccsc23)c1,C26H26N6O2S,486.6
+osimertinib,3,approved (any jurisdiction),C=CC(=O)Nc1cc(Nc2nccc(-c3cn(C)c4ccccc34)n2)c(OC)cc1N(C)CCN(C)C,C28H33N7O2,499.6
+rociletinib,3,clinical/investigational,C=CC(=O)Nc1cccc(Nc2nc(Nc3ccc(N4CCN(C(C)=O)CC4)cc3OC)ncc2C(F)(F)F)c1,C27H28F3N7O3,555.6
+brigatinib,other,approved (any jurisdiction),COc1cc(N2CCC(N3CCN(C)CC3)CC2)ccc1Nc1ncc(Cl)c(Nc2ccccc2P(C)(C)=O)n1,C29H39ClN7O2P,584.1
