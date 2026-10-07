@@ -1,7 +1,5 @@
 # Group 4 - Chemoinformatics: three generations of EGFR inhibitors
 
-
-
 **Research question:** How do first-, second- and third-generation EGFR kinase inhibitors differ in their physicochemical properties?
 
 **Data:** `data/egfr_inhibitors.csv` - 21 EGFR inhibitors (name, generation 1/2/3/other, SMILES, formula, molecular weight). Structures were validated against their published molecular formula.
@@ -22,6 +20,7 @@ Run with `python analysis.py`. It must run without error after your merge.
 
 ## Results (fill in after the merge)
 
+https://github.com/gnarcissefhnw/egfr_inhibitors_chemoinformatics
 Descriptors: The results summary are as is
     MW: EGFRs by generation have higher molecular weights as the generation increases.
     TPSA: third generation have higher molecular weight and topological polar surface area
